@@ -1,0 +1,64 @@
+---
+
+- name: Install vector (redhat)
+  when: ansible_os_family | lower == "redhat"
+  block:
+  - name: Check that the repo exists (redhat)
+    ansible.builtin.stat:
+      path: /etc/yum.repos.d/vector.repo
+      get_checksum: false
+      get_attributes: false
+    register: stat_result
+  - name: Download Vector repo
+    when: stat_result.stat.exists == false
+    ansible.builtin.get_url:
+      url: "{{ vector_curl }}"
+      dest: ./vector.sh
+      mode: '755'
+  - name: Install Vector repo (redhat)
+    when: stat_result.stat.exists == false
+    become: true
+    ansible.builtin.command:
+      cmd: "bash -c ./vector.sh"
+      creates: /etc/yum.repos.d/vector.repo
+  - name: Install Vector (redhat)
+    become: true
+    ansible.builtin.dnf:
+      name: vector >= {{ vector_version }}
+      state: present
+
+- name: Install vector (debian)
+  when: ansible_os_family | lower == "debian"
+  block:
+  - name: Check that the repo exists (debian)
+    ansible.builtin.stat:
+      path: /etc/apt/sources.list.d/vector.list
+      get_checksum: false
+      get_attributes: false
+    register: stat_result
+  - name: Download Vector repo
+    when: stat_result.stat.exists == false
+    ansible.builtin.get_url:
+      url: "{{ vector_curl }}"
+      dest: ./vector.sh
+      mode: '755'
+  - name: Install Vector repo (debian)
+    when: stat_result.stat.exists == false
+    become: true
+    ansible.builtin.command:
+      cmd: "bash -c ./vector.sh"
+      creates: /etc/apt/sources.list.d/vector.list
+  - name: Install Vector (debian)
+    become: true
+    ansible.builtin.apt:
+      name: vector>= {{ vector_version }}
+      state: present
+      update_cache: true
+
+- name: Configure Vector
+  become: true
+  ansible.builtin.template:
+    src: templates/vector.yaml
+    dest: /etc/vector/vector.yaml
+    mode: '644'
+  notify: Restart Vector service

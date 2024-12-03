@@ -1,0 +1,6 @@
+---
+vector_version: "0.42.0"
+vector_configure_click_sink: false
+vector_click_host: "localhost"
+vector_click_db: "logs"
+vector_click_table: "vector"
