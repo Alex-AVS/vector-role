@@ -26,10 +26,20 @@
     ansible.builtin.dnf:
       name: vector >= {{ vector_version }}
       state: present
+  - name: ensure vector service is started and enabled
+    service:
+      name: vector
+      state: started
+      enabled: true
 
 - name: Install vector (debian)
   when: ansible_os_family | lower == "debian"
   block:
+  - name: FIXFIX Install py root certs
+    ansible.builtin.package:
+      name: python3-certifi
+      state: present
+      update_cache: true
   - name: Check that the repo exists (debian)
     ansible.builtin.stat:
       path: /etc/apt/sources.list.d/vector.list
@@ -51,9 +61,14 @@
   - name: Install Vector (debian)
     become: true
     ansible.builtin.apt:
-      name: vector>= {{ vector_version }}
+      name: vector>={{ vector_version }}
       state: present
       update_cache: true
+  - name: ensure vector service is started and enabled
+    service:
+      name: vector
+      state: started
+      enabled: true
 
 - name: Configure Vector
   become: true

@@ -1,5 +1,5 @@
 ---
-- hosts: localhost
-  remote_user: root
+- hosts: all
+  remote_user: alexsys
   roles:
-    - vector-role
+    - alexsys.vector
